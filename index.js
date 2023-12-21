@@ -47,12 +47,7 @@ client.consoleCommands = new Discord.Collection();
 
 // File finder/loader
 function loadFiles(folder, callback) {
-    let commandFiles;
-    try {
-        commandFiles = fs.readdirSync(folder);
-    } catch (err) {
-        global.logger.error(err);
-    }
+    const commandFiles = fs.readdirSync(folder);
     while (commandFiles.length > 0) {
         const file = commandFiles.shift();
         if (file.endsWith(".js")) {
@@ -68,15 +63,15 @@ function loadFiles(folder, callback) {
 }
 
 // Slash command handler
-const discoveredCommands = [];
-loadFiles("./commands/slash/", (slashcommand, fileName) => {
-    if ("name" in slashcommand && "execute" in slashcommand && "description" in slashcommand) {
-        client.slashcommands.set(slashcommand.name, slashcommand);
-        discoveredCommands.push(slashcommand);
-    } else {
-        global.logger.error(`[WARNING] The (/) command ${fileName} is missing a required "name", "execute", or "type" property.`);
-    }
-});
+// const discoveredCommands = [];
+// loadFiles("./commands/slash/", (slashcommand, fileName) => {
+//     if ("name" in slashcommand && "execute" in slashcommand && "description" in slashcommand) {
+//         client.slashcommands.set(slashcommand.name, slashcommand);
+//         discoveredCommands.push(slashcommand);
+//     } else {
+//         global.logger.error(`[WARNING] The (/) command ${fileName} is missing a required "name", "execute", or "type" property.`);
+//     }
+// });
 
 // Text command handler
 loadFiles("./commands/text/", function(command) {
@@ -90,36 +85,36 @@ loadFiles("./commands/text/", function(command) {
 });
 
 // Context menu command handler
-loadFiles("./commands/context/", (contextcommand, fileName) => {
-    if ("name" in contextcommand && "execute" in contextcommand && "type" in contextcommand) {
-        client.contextCommands.set(contextcommand.name, contextcommand);
-        discoveredCommands.push(contextcommand);
-    } else {
-        global.logger.error(`[WARNING] The (ctx) command ${fileName} is missing a required "name", "execute", or "type" property.`);
-    }
-});
+// loadFiles("./commands/context/", (contextcommand, fileName) => {
+//     if ("name" in contextcommand && "execute" in contextcommand && "type" in contextcommand) {
+//         client.contextCommands.set(contextcommand.name, contextcommand);
+//         discoveredCommands.push(contextcommand);
+//     } else {
+//         global.logger.error(`[WARNING] The (ctx) command ${fileName} is missing a required "name", "execute", or "type" property.`);
+//     }
+// });
 
 // Event handler
-loadFiles("./events/client/", function(event) {
-    if (event.once) {
-        client.once(event.name, async (...args) => {
-            if (event.log) global.logger.event(`Event: [${event.name}] fired.`);
-            await event.execute(client, global.logger, ...args);
-        });
-    } else {
-        client.on(event.name, async (...args) => {
-            if (event.log) global.logger.event(`Event: [${event.name}] fired.`);
-            await event.execute(client, global.logger, ...args);
-        });
-    }
-});
+// loadFiles("./events/client/", function(event) {
+//     if (event.once) {
+//         client.once(event.name, async (...args) => {
+//             if (event.log) global.logger.event(`Event: [${event.name}] fired.`);
+//             await event.execute(client, global.logger, ...args);
+//         });
+//     } else {
+//         client.on(event.name, async (...args) => {
+//             if (event.log) global.logger.event(`Event: [${event.name}] fired.`);
+//             await event.execute(client, global.logger, ...args);
+//         });
+//     }
+// });
 
-loadFiles("./events/process/", function(event) {
-    process.on(event.name, async (...args) => {
-        if (event.log) global.logger.event(`Event: [${event.name}] fired.`);
-        await event.execute(client, global.logger, ...args);
-    });
-});
+// loadFiles("./events/process/", function(event) {
+//     process.on(event.name, async (...args) => {
+//         if (event.log) global.logger.event(`Event: [${event.name}] fired.`);
+//         await event.execute(client, global.logger, ...args);
+//     });
+// });
 
 process.stdin.setEncoding("utf8");
 loadFiles("./events/console/", function(event) {
