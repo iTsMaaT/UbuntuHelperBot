@@ -47,7 +47,8 @@ client.consoleCommands = new Discord.Collection();
 
 // File finder/loader
 function loadFiles(folder, callback) {
-    const commandFiles = fs.readdirSync(folder);
+    const commandFiles = fs.readdirSync(folder).catch(err => global.logger.error(err));
+    if (!commandFiles) return;
     while (commandFiles.length > 0) {
         const file = commandFiles.shift();
         if (file.endsWith(".js")) {
