@@ -1,0 +1,25 @@
+{
+  "name": "ubuntu-server-helper",
+  "version": "1.0.0",
+  "description": "A discord bot to get alerts or execute commands on a remote ubuntu server",
+  "main": "index.js",
+  "scripts": {
+    "test": "git pull && npm i && code UbuntuHelper.code-workspace && eslint --no-fix ."
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1",
+    "module-alias": "^2.2.3",
+    "pretty-ms": "^7.0.1",
+    "prometheus-query": "^3.3.3"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0"
+  },
+  "_moduleAliases": {
+    "@root": ".",
+    "@functions": "./utils/functions"
+  }
+}
