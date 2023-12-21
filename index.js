@@ -116,26 +116,26 @@ loadFiles("./commands/text/", function(command) {
 //     });
 // });
 
-process.stdin.setEncoding("utf8");
-loadFiles("./events/console/", function(event) {
-    client.consoleCommands.set(event.name, event);
-});
-
-process.stdin.on("data", async (input) => {
-    const args = input.split(/ +/);
-    const commandName = args.shift().toLowerCase().trim();
-    const command = client.consoleCommands.get(commandName);
-    if (!command) return;
-
-    process.stdout.write("\u001b[1A\u001b[2K");
-    await console.logger(`
-    Executing [${commandName}]
-    by        [CONSOLE]
-    ---------------------------`
-        .replace(/^\s+/gm, ""));
-
-    await command.execute(client, global.logger, args);
-});
+// process.stdin.setEncoding("utf8");
+// loadFiles("./events/console/", function(event) {
+//     client.consoleCommands.set(event.name, event);
+// });
+// 
+// process.stdin.on("data", async (input) => {
+//     const args = input.split(/ +/);
+//     const commandName = args.shift().toLowerCase().trim();
+//     const command = client.consoleCommands.get(commandName);
+//     if (!command) return;
+// 
+//     process.stdout.write("\u001b[1A\u001b[2K");
+//     await console.logger(`
+//     Executing [${commandName}]
+//     by        [CONSOLE]
+//     ---------------------------`
+//         .replace(/^\s+/gm, ""));
+// 
+//     await command.execute(client, global.logger, args);
+// });
 
 
 // Bot setup on startup
