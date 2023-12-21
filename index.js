@@ -63,15 +63,15 @@ function loadFiles(folder, callback) {
 }
 
 // Slash command handler
-// const discoveredCommands = [];
-// loadFiles("./commands/slash/", (slashcommand, fileName) => {
-//     if ("name" in slashcommand && "execute" in slashcommand && "description" in slashcommand) {
-//         client.slashcommands.set(slashcommand.name, slashcommand);
-//         discoveredCommands.push(slashcommand);
-//     } else {
-//         global.logger.error(`[WARNING] The (/) command ${fileName} is missing a required "name", "execute", or "type" property.`);
-//     }
-// });
+const discoveredCommands = [];
+loadFiles("./commands/slash/", (slashcommand, fileName) => {
+    if ("name" in slashcommand && "execute" in slashcommand && "description" in slashcommand) {
+        client.slashcommands.set(slashcommand.name, slashcommand);
+        discoveredCommands.push(slashcommand);
+    } else {
+        global.logger.error(`[WARNING] The (/) command ${fileName} is missing a required "name", "execute", or "type" property.`);
+    }
+});
 
 // Text command handler
 loadFiles("./commands/text/", function(command) {
