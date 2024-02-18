@@ -6,6 +6,7 @@ module.exports = {
     name: "serverinfo",
     description: "List all pterodactyl servers",
     category: "server",
+    aliases: ["si"],
     async execute(logger, client, message, args) {
         const prometheusEndpoint = "http://192.168.2.254:9090/"; // Replace with your Prometheus server endpoint
 
