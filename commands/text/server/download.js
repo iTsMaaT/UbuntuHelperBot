@@ -10,7 +10,7 @@ module.exports = {
     async execute(logger, client, message, args) {
         const videoUrl = args[0];
         const outputFolder = "/mnt/Main/Jellyfin/YT-DLP";
-        const downloadCommand = `../../../yt-dlp -f 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best' -o '${outputFolder}/%(title)s.%(ext)s' ${videoUrl}`;
+        const downloadCommand = `/home/container/yt-dlp -f 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best' -o '${outputFolder}/%(title)s.%(ext)s' ${videoUrl}`;
         const downloadOperation = () => new Promise((resolve, reject) => {
             // Execute yt-dlp command to download the video as MP4 and in 1080p resolution
             exec(downloadCommand, (error, stdout, stderr) => {
@@ -21,7 +21,7 @@ module.exports = {
                 }
                 if (stderr) {
                     console.error(`stderr: ${stderr}`);
-                    message.reply("An error occured");
+                    // message.reply("An error occured");
                     reject("An error occurred while downloading the video.");
                 }
                 console.log(`stdout: ${stdout}`);
