@@ -158,7 +158,6 @@ client.once(Events.ClientReady, async () => {
     console.log("Waiting for websocket to successfully connect.");
     const interval = setInterval(() => {
         if (client.ws.ping !== -1) {
-            if (process.env.SERVER != "dev") client.channels.cache.get(process.env.STATUS_CHANNEL_ID).send(`Bot Online!, **Ping**: \`${client.ws.ping}ms\``);
             global.logger.info("Bot started successfully.");
             clearInterval(interval);
         }
