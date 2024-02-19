@@ -51,9 +51,15 @@ module.exports = {
 
         try {
             const result = await addToQueue("download", downloadOperation);
-            message.reply(result);
+            // Check if `result` is not undefined before replying
+            if (result !== undefined) 
+                message.reply(result);
+            else 
+                message.reply("An error occurred during the download process.");
+            
         } catch (err) {
             message.reply(err);
         }
+        
     },
 };
