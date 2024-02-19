@@ -1,7 +1,7 @@
 const { ToEngineerNotation } = require("@functions/formattingFunctions");
 const prettyMilliseconds = require("pretty-ms");
 
-const GetPterodactylInfo = async function() {
+const GetPterodactylInfo = async function(serverID) {
     let serverName = "";
     let RAMlimit = "";
     let CPUlimit = "";
@@ -17,7 +17,7 @@ const GetPterodactylInfo = async function() {
 
     try {
         const [serverResponse, resourcesResponse] = await Promise.all([
-            fetch("https://dash.kpotatto.net/api/client/servers/adc0f433", {
+            fetch(`https://${process.env.PTERODACTYL_URL}/api/client/servers/${serverID}`, {
                 method: "GET",
                 headers: {
                     "Accept": "application/json",
@@ -25,7 +25,7 @@ const GetPterodactylInfo = async function() {
                     "Authorization": `Bearer ${process.env.PTERODACTYL_API_KEY}`,
                 },
             }),
-            fetch("https://dash.kpotatto.net/api/client/servers/adc0f433/resources", {
+            fetch(`https://${process.env.PTERODACTYL_URL}/api/client/servers/${serverID}/resources`, {
                 method: "GET",
                 headers: {
                     "Accept": "application/json",
@@ -42,8 +42,15 @@ const GetPterodactylInfo = async function() {
         DISKlimit = serverJson.attributes.limits.disk;
         IPalias = serverJson.attributes.relationships.allocations.data[0].attributes.ip_alias;
         IPport = serverJson.attributes.relationships.allocations.data[0].attributes.port;
-
+        
         const resourcesJson = await resourcesResponse.json();
+        const serverStatus = resourcesJson.attributes.current_state;
+
+        if (serverStatus != online) {
+            return {
+                serverStatus,
+            };}
+        
         RAMusage = resourcesJson.attributes.resources.memory_bytes;
         CPUusage = resourcesJson.attributes.resources.cpu_absolute;
         DISKusage = resourcesJson.attributes.resources.disk_bytes;
@@ -56,6 +63,7 @@ const GetPterodactylInfo = async function() {
     }
 
     const info = {
+        status: serverStatus,
         ram: {
             limit: {
                 raw: parseInt(RAMlimit) * 1024 * 1024,
