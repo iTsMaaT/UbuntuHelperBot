@@ -1,6 +1,6 @@
 require("module-alias/register");
 const { Client, GatewayIntentBits, Events, Partials, ActivityType, PermissionFlagsBits } = require("discord.js");
-const { prefix } = require ("@root/utils/config.json");
+const { prefix, ownerID } = require ("@root/utils/config.json");
 
 const Logger = require("./utils/log");
 const fs = require("fs");
@@ -247,6 +247,7 @@ client.on(Events.InteractionCreate, async interaction => {
 // Text command executing
 client.on(Events.MessageCreate, async (message) => {
     if (message.author.bot) return;
+    if (message.author.id != ownerID) return;
     if (!message.guild) return message.reply("Commands cannot be executed inside DMs.");
 
     // Text command executing

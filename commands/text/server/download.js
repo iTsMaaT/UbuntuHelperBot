@@ -25,8 +25,15 @@ module.exports = {
                 message.reply("Attempting download...");
 
                 const ytDlpProcess = spawn(downloadCommand[0], downloadCommand.slice(1));
+                let stdoutTimer;
 
                 ytDlpProcess.stdout.on("data", data => {
+                    clearTimeout(stdoutTimer);
+                    stdoutTimer = setTimeout(() => {
+                        ytDlpProcess.kill();
+                        reject("No stdout received for 5 minutes, process terminated.");
+                    }, 5 * 60 * 1000); // 5 minutes
+
                     logger.info(`stdout: ${data}`);
                 });
 
@@ -36,6 +43,7 @@ module.exports = {
                 });
 
                 ytDlpProcess.on("close", code => {
+                    clearTimeout(stdoutTimer);
                     if (code !== 0) {
                         logger.error(`yt-dlp process exited with code ${code}`);
                         reject(`yt-dlp process exited with code ${code}`);
@@ -44,14 +52,13 @@ module.exports = {
                     }
                 });
             } catch (err) {
-                reject("An error occured executing the command");
+                reject("An error occurred executing the command");
                 logger.error(err);
             }
         });
 
         try {
             const result = await addToQueue("download", downloadOperation);
-            // Check if `result` is not undefined before replying
             if (result !== undefined) 
                 message.reply(result);
             else 
