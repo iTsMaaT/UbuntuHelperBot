@@ -5,7 +5,7 @@ module.exports = {
     description: "Shows used ports by services",
     category: "server",
     async execute(logger, client, message, args) {
-        exec("netstat -tulnp | grep 'LISTEN' | grep -v ':::'", (error, stdout, stderr) => {
+        exec("ss -tulnp | grep 'LISTEN' | grep -v ':::'", (error, stdout, stderr) => {
             if (error) {
                 console.error(`Error executing command: ${error}`);
                 return;
