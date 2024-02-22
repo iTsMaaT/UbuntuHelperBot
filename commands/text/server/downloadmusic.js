@@ -28,18 +28,27 @@ module.exports = {
                 const filter = response => !response.author.bot;
                 const collected = await message.channel.awaitMessages({ filter, max: 1, time: 60000, errors: ["time"] });
 
-                if (!collected || !collected.first()) {
-                    await promptMessage.delete();
+                if (!collected || !collected.first()) 
                     return message.reply("You did not provide the required input. Cancelling download.");
-                }
-
+                
+                
                 const content = collected.first().content.trim();
+                await promptMessage.delete();
                 await collected.first().delete();
 
-                if (promptObj.name === "cover" && content.toLowerCase() === "skip") 
+                if (promptObj.name === "cover" && content.toLowerCase() === "skip") {
                     metadata.cover = null;
-                else 
+                } else {
                     metadata[promptObj.name] = content;
+                    try {
+                        const response = await (await fetch(content)).buffer();
+                        const coverBuffer = await response.buffer();
+                        metadata.cover = coverBuffer;
+                    } catch (error) {
+                        await promptMessage.delete();
+                        return message.reply(`Error fetching cover image: ${error.message}`);
+                    }
+                }
                 
             }
             const embed = {
@@ -47,8 +56,8 @@ module.exports = {
                 title: "Metadata that will be applied",
                 fields:[
                     { name: "Title", value: metadata.title },
-                    { name: "Artist", value: metadata.title },
-                    { name: "Album", value: metadata.title },
+                    { name: "Artist", value: metadata.artist },
+                    { name: "Album", value: metadata.album },
                     { name: "Cover image?", value: metadata.cover ? "Yes" : "No" },
                 ],
                 timestamp: new Date(),
