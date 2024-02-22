@@ -1,5 +1,4 @@
-const { spawn } = require("child_process");
-const { addToQueue } = require("../../../utils/QueueSystem.js");
+const fs = require("fs/promises");
 const NodeID3 = require("node-id3");
 const youtubeDlExec = require("youtube-dl-exec");
 
@@ -12,7 +11,8 @@ module.exports = {
         const videoUrl = args[0];
         if (!videoUrl) return message.reply("You must provide a valid URL");
 
-        const outputFolder = "/mnt/jellyfin/Music";
+        const outputFolderBusy = "/mnt/jellyfin/Music/Busy";
+        const outputFolderCompleted = "/mnt/jellyfin/Music/Completed";
 
         const collectMetadata = async () => {
             const metadata = {};
@@ -29,13 +29,13 @@ module.exports = {
                 await message.channel.send(promptObj.prompt);
                 const filter = response => !response.author.bot;
                 const collected = await message.channel.awaitMessages({ filter, max: 1, time: 60000, errors: ["time"] });
-        
+
                 if (!collected || !collected.first()) 
                     return message.reply("You did not provide the required input. Cancelling download.");
-        
+
                 const content = collected.first().content.trim();
                 if (promptObj.name === "cover" && content.toLowerCase() === "skip") 
-                    metadata.cover = null;
+                    metadata.coverURL = null;
                 else 
                     metadata[promptObj.name] = content;
             }
@@ -43,50 +43,36 @@ module.exports = {
             return metadata;
         };
 
-        const downloadOperation = async () => {
-            try {
-                const metadata = await collectMetadata();
-                console.log(metadata);
-                message.reply("Attempting download...");
-
-                const downloadedFilePath = `${outputFolder}/${metadata.title} - ${metadata.artist}.mp3`;
-
-                await youtubeDlExec(videoUrl, {
-                    extractAudio: true,
-                    audioFormat: "mp3",
-                    output: downloadedFilePath,
-                });
-
-                const tags = {
-                    title: metadata.title,
-                    artist: metadata.artist,
-                    album: metadata.album,
-                    APIC: metadata.coverURL ? metadata.coverURL : null,
-                };
-
-                const success = NodeID3.write(tags, downloadedFilePath);
-                if (success === true) {
-                    return "Video downloaded and metadata embedded successfully!";
-                } else {
-                    logger.error("Error embedding metadata:" + success);
-                    throw new Error("Failed to embed metadata into the downloaded MP3 file.");
-                }
-            } catch (err) {
-                logger.error(err);
-                throw new Error("An error occurred executing the command");
-            }
-        };
-
         try {
-            const result = await addToQueue("download", downloadOperation);
-            /*
-            if (result !== undefined)
-                message.reply(result);
-            else
-                message.reply("An error occurred during the download process.");
-            */
+            const metadata = await collectMetadata();
+            message.reply("Attempting download...");
+
+            const downloadedFilePath = `${outputFolderBusy}/${metadata.title} - ${metadata.artist}.mp3`;
+
+            await youtubeDlExec(videoUrl, {
+                extractAudio: true,
+                audioFormat: "mp3",
+                output: downloadedFilePath,
+            });
+
+            const tags = {
+                title: metadata.title,
+                artist: metadata.artist,
+                album: metadata.album,
+                APIC: metadata.coverURL ? metadata.coverURL : null,
+            };
+
+            const success = NodeID3.write(tags, downloadedFilePath);
+            if (success === true) {
+                message.reply("Video downloaded and metadata embedded successfully!");
+                await fs.rename(downloadedFilePath, `${outputFolderCompleted}/${metadata.title} - ${metadata.artist}.mp3`);
+            } else {
+                logger.error("Error embedding metadata:" + success);
+                message.reply("Failed to embed metadata into the downloaded MP3 file.");
+            }
         } catch (err) {
-            message.reply(err.message);
+            logger.error(err);
+            message.reply("An error occurred executing the command");
         }
     },
 };
