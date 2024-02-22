@@ -58,6 +58,7 @@ module.exports = {
         const downloadOperation = () => {
             return new Promise((resolve, reject) => {
                 try {
+                    let realOutputFile;
                     collectMetadata().then(metadata => {
                         message.reply("Attempting download...");
         
@@ -72,6 +73,7 @@ module.exports = {
                             }, 5 * 60 * 1000); // 5 minutes
         
                             logger.info(`stdout: ${data}`);
+                            if (data.trim().startsWith("[ExtractAudio] Destination: ")) realOutputFile = data.trim().split("[ExtractAudio] Destination: ")[1];
                         });
         
                         ytDlpProcess.stderr.on("data", data => {
@@ -86,7 +88,7 @@ module.exports = {
                                 reject(`yt-dlp process exited with code ${code}`);
                             } else {
                                 // Embed metadata into the downloaded MP3 file
-                                const downloadedFilePath = `${outputFolder}/${metadata.title}.mp3`;
+                                const downloadedFilePath = `${outputFolder}/${realOutputFile}`;
                                 const tags = {
                                     title: metadata.title,
                                     artist: metadata.artist,
