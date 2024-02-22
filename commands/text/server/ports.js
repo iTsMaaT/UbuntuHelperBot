@@ -5,7 +5,7 @@ module.exports = {
     description: "Shows used ports by services",
     category: "server",
     async execute(logger, client, message, args) {
-        exec("ss -tulnp | grep 'LISTEN' | grep -v ':::'", (error, stdout, stderr) => {
+        exec("sudo netstat -tulnp | grep 'LISTEN' | grep -v ':::'", (error, stdout, stderr) => {
             if (error) {
                 console.error(`Error executing command: ${error}`);
                 return;
@@ -18,5 +18,21 @@ module.exports = {
             message.channel.send(`\`\`\`${stdout}\`\`\``);
             console.log(stdout);
         });
+
+        function portsToOBJ(stdout) {
+            const JSONPorts = {};
+            const lines = stdout.trim().split("\n");
+            for (const line of lines) {
+                const parts = line.trim().split(/\s+/);
+                if (parts[6] == "-") continue;
+                const ipAndPort = parts[3].split(":");
+                JSONPorts[parts[6] + (parts[7] || "")] = {
+                    ip: ipAndPort[0],
+                    port: ipAndPort[1],
+                    protocol: parts[0],
+                };
+            }
+            return JSONPorts;
+        }
     },
 };
