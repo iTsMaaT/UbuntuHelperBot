@@ -11,7 +11,7 @@ module.exports = {
         const videoUrl = args[0];
         if (!videoUrl) return message.reply("You must provide a valid URL");
 
-        const outputFolder = "/mnt/jellyfin";
+        const outputFolder = "/mnt/jellyfin/Music";
         const downloadCommand = [
             "/home/container/yt-dlp",
             "-f",
@@ -111,10 +111,12 @@ module.exports = {
 
         try {
             const result = await addToQueue("download", downloadOperation);
+            /*
             if (result !== undefined)
                 message.reply(result);
             else
                 message.reply("An error occurred during the download process.");
+            */
 
         } catch (err) {
             message.reply(err);
