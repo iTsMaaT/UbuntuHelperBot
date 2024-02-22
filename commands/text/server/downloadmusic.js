@@ -74,7 +74,17 @@ module.exports = {
             const success = await NodeID3.write(tags, downloadedFilePath);
             if (success === true) {
                 message.reply("Video downloaded and metadata embedded successfully!");
-                // await fs.rename(downloadedFilePath, `${outputFolderCompleted}/${metadata.title} - ${metadata.artist}.mp3`);
+                await new Promise((resolve, reject) => {
+                    const interval = setInterval(() => {
+                        if (!fs.existsSync(downloadedFilePath + ".part")) {
+                            clearInterval(interval);
+                            resolve();
+                        }
+                    }, 1000); // Check every second for the presence of a temporary file
+                });
+                
+                // Rename the file after it's completely written and closed
+                await fs.rename(downloadedFilePath, `${outputFolderCompleted}/${metadata.title} - ${metadata.artist}.mp3`);
             } else {
                 logger.error("Error embedding metadata:" + success);
                 message.reply("Failed to embed metadata into the downloaded MP3 file.");
