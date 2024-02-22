@@ -1,6 +1,7 @@
 const { spawn } = require("child_process");
 const { addToQueue } = require("../../../utils/QueueSystem.js");
 const NodeID3 = require("node-id3");
+const youtubeDlExec = require("youtube-dl-exec");
 
 module.exports = {
     name: "downloadmp3",
@@ -12,17 +13,6 @@ module.exports = {
         if (!videoUrl) return message.reply("You must provide a valid URL");
 
         const outputFolder = "/mnt/jellyfin/Music";
-        const downloadCommand = [
-            "/home/container/yt-dlp",
-            "-f",
-            "bestaudio[ext=m4a]",
-            "-x",
-            "--audio-format",
-            "mp3",
-            "-o",
-            `${outputFolder}/%(title)s.%(ext)s`,
-            videoUrl,
-        ];
 
         const collectMetadata = async () => {
             const metadata = {};
@@ -55,68 +45,38 @@ module.exports = {
             return metadata;
         };
 
-        const downloadOperation = () => {
-            return new Promise((resolve, reject) => {
-                try {
-                    let realOutputFile;
-                    collectMetadata().then(metadata => {
-                        message.reply("Attempting download...");
-        
-                        const ytDlpProcess = spawn(downloadCommand[0], downloadCommand.slice(1));
-                        let stdoutTimer;
-        
-                        ytDlpProcess.stdout.on("data", data => {
-                            clearTimeout(stdoutTimer);
-                            stdoutTimer = setTimeout(() => {
-                                ytDlpProcess.kill();
-                                reject("No stdout received for 5 minutes, process terminated.");
-                            }, 5 * 1000); // 5 minutes
-        
-                            logger.info(`stdout: ${data}`);
-                            if (`${data}`.trim().startsWith("[ExtractAudio] Destination: ")) {
-                                realOutputFile = `${data}`.trim().split("[ExtractAudio] Destination: ")[1];
-                                const downloadedFilePath = realOutputFile;
-                                const tags = {
-                                    title: metadata.title,
-                                    artist: metadata.artist,
-                                    album: metadata.album,
-                                    APIC: metadata.coverURL ? metadata.coverURL : null,
-                                };
-        
-                                const success = NodeID3.write(tags, downloadedFilePath);
-                                if (success === true) {
-                                    resolve("Video downloaded and metadata embedded successfully!");
-                                } else {
-                                    logger.error("Error embedding metadata:" + success);
-                                    reject("Failed to embed metadata into the downloaded MP3 file.");
-                                }
-                            }
-                        });
-        
-                        ytDlpProcess.stderr.on("data", data => {
-                            logger.error(`stderr: ${data}`);
-                            message.channel.send(`Error: ${data}`);
-                        });
-        
-                        ytDlpProcess.on("close", code => {
-                            clearTimeout(stdoutTimer);
-                            if (code !== 0) {
-                                logger.error(`yt-dlp process exited with code ${code}`);
-                                reject(`yt-dlp process exited with code ${code}`);
-                            } else {
-                                // Embed metadata into the downloaded MP3 file
-                            }
-                        });
-                    }).catch(err => {
-                        logger.error(err);
-                        reject("An error occurred executing the command");
-                    });
-                } catch (err) {
-                    logger.error(err);
-                    reject("An error occurred executing the command");
+        const downloadOperation = async () => {
+            try {
+                const metadata = await collectMetadata();
+                message.reply("Attempting download...");
+
+                const downloadedFilePath = `${outputFolder}/${metadata.title} - ${metadata.artist}.mp3`;
+
+                await youtubeDlExec(videoUrl, {
+                    extractAudio: true,
+                    audioFormat: "mp3",
+                    output: downloadedFilePath,
+                });
+
+                const tags = {
+                    title: metadata.title,
+                    artist: metadata.artist,
+                    album: metadata.album,
+                    APIC: metadata.coverURL ? metadata.coverURL : null,
+                };
+
+                const success = NodeID3.write(tags, downloadedFilePath);
+                if (success === true) {
+                    return "Video downloaded and metadata embedded successfully!";
+                } else {
+                    logger.error("Error embedding metadata:" + success);
+                    throw new Error("Failed to embed metadata into the downloaded MP3 file.");
                 }
-            });
-        };        
+            } catch (err) {
+                logger.error(err);
+                throw new Error("An error occurred executing the command");
+            }
+        };
 
         try {
             const result = await addToQueue("download", downloadOperation);
@@ -126,9 +86,8 @@ module.exports = {
             else
                 message.reply("An error occurred during the download process.");
             */
-
         } catch (err) {
-            message.reply(err);
+            message.reply(err.message);
         }
     },
 };

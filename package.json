@@ -14,7 +14,8 @@
     "module-alias": "^2.2.3",
     "node-id3": "^0.2.6",
     "pretty-ms": "^7.0.1",
-    "prometheus-query": "^3.3.3"
+    "prometheus-query": "^3.3.3",
+    "youtube-dl-exec": "^2.5.7"
   },
   "devDependencies": {
     "eslint": "^8.56.0"
