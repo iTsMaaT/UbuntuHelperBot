@@ -73,7 +73,7 @@ module.exports = {
                             }, 5 * 60 * 1000); // 5 minutes
         
                             logger.info(`stdout: ${data}`);
-                            if (data.trim().startsWith("[ExtractAudio] Destination: ")) realOutputFile = data.trim().split("[ExtractAudio] Destination: ")[1];
+                            if (`${data}`.trim().startsWith("[ExtractAudio] Destination: ")) realOutputFile = `${data}`.trim().split("[ExtractAudio] Destination: ")[1];
                         });
         
                         ytDlpProcess.stderr.on("data", data => {
