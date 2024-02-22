@@ -19,27 +19,25 @@ module.exports = {
 
             // Prompts for metadata
             const prompts = [
-                "Enter the title of the song:",
-                "Enter the artist:",
-                "Enter the album:",
-                "Optionally paste the URL of the album cover (if any), or type 'skip':",
+                { name: "title", prompt: "Enter the title of the song:" },
+                { name: "artist", prompt: "Enter the artist:" },
+                { name: "album", prompt: "Enter the album:" },
+                { name: "cover", prompt: "Optionally paste the URL of the album cover (if any), or type 'skip':" },
             ];
 
-            for (const prompt of prompts) {
-                await message.channel.send(prompt);
+            for (const promptObj of prompts) {
+                await message.channel.send(promptObj.prompt);
                 const filter = response => !response.author.bot;
                 const collected = await message.channel.awaitMessages({ filter, max: 1, time: 60000, errors: ["time"] });
-
+        
                 if (!collected || !collected.first()) 
                     return message.reply("You did not provide the required input. Cancelling download.");
-                
-
+        
                 const content = collected.first().content.trim();
-                if (prompt.toLowerCase().includes("cover") && content.toLowerCase() === "skip") 
-                    metadata.coverURL = null;
+                if (promptObj.name === "cover" && content.toLowerCase() === "skip") 
+                    metadata.cover = null;
                 else 
-                    metadata[prompt.toLowerCase().replace(/ /g, "_").replace(":", "")] = content;
-                
+                    metadata[promptObj.name] = content;
             }
 
             return metadata;
@@ -48,6 +46,7 @@ module.exports = {
         const downloadOperation = async () => {
             try {
                 const metadata = await collectMetadata();
+                console.log(metadata);
                 message.reply("Attempting download...");
 
                 const downloadedFilePath = `${outputFolder}/${metadata.title} - ${metadata.artist}.mp3`;
