@@ -70,24 +70,11 @@ module.exports = {
                             stdoutTimer = setTimeout(() => {
                                 ytDlpProcess.kill();
                                 reject("No stdout received for 5 minutes, process terminated.");
-                            }, 5 * 60 * 1000); // 5 minutes
+                            }, 5 * 1000); // 5 minutes
         
                             logger.info(`stdout: ${data}`);
-                            if (`${data}`.trim().startsWith("[ExtractAudio] Destination: ")) realOutputFile = `${data}`.trim().split("[ExtractAudio] Destination: ")[1];
-                        });
-        
-                        ytDlpProcess.stderr.on("data", data => {
-                            logger.error(`stderr: ${data}`);
-                            message.channel.send(`Error: ${data}`);
-                        });
-        
-                        ytDlpProcess.on("close", code => {
-                            clearTimeout(stdoutTimer);
-                            if (code !== 0) {
-                                logger.error(`yt-dlp process exited with code ${code}`);
-                                reject(`yt-dlp process exited with code ${code}`);
-                            } else {
-                                // Embed metadata into the downloaded MP3 file
+                            if (`${data}`.trim().startsWith("[ExtractAudio] Destination: ")) {
+                                realOutputFile = `${data}`.trim().split("[ExtractAudio] Destination: ")[1];
                                 const downloadedFilePath = realOutputFile;
                                 const tags = {
                                     title: metadata.title,
@@ -103,6 +90,21 @@ module.exports = {
                                     logger.error("Error embedding metadata:" + success);
                                     reject("Failed to embed metadata into the downloaded MP3 file.");
                                 }
+                            }
+                        });
+        
+                        ytDlpProcess.stderr.on("data", data => {
+                            logger.error(`stderr: ${data}`);
+                            message.channel.send(`Error: ${data}`);
+                        });
+        
+                        ytDlpProcess.on("close", code => {
+                            clearTimeout(stdoutTimer);
+                            if (code !== 0) {
+                                logger.error(`yt-dlp process exited with code ${code}`);
+                                reject(`yt-dlp process exited with code ${code}`);
+                            } else {
+                                // Embed metadata into the downloaded MP3 file
                             }
                         });
                     }).catch(err => {
