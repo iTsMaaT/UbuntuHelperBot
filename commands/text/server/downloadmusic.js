@@ -20,7 +20,6 @@ module.exports = {
                 { name: "title", prompt: "Enter the title of the song:" },
                 { name: "artist", prompt: "Enter the artist:" },
                 { name: "album", prompt: "Enter the album:" },
-                { name: "cover", prompt: "Optionally paste the URL of the album cover (if any), or type 'skip':" },
             ];
 
             for (const promptObj of prompts) {
@@ -36,22 +35,7 @@ module.exports = {
                 await promptMessage.delete();
                 await collected.first().delete();
 
-                if (promptObj.name === "cover") {
-                    if (content == "skip") {
-                        metadata.cover = null;
-                    } else {
-                        try {
-                            const response = await (await fetch(content)).arrayBuffer();
-                            metadata.cover = response;
-                        } catch (error) {
-                            return message.reply(`Error fetching cover image: ${error.message}`);
-                        }
-                    }
-                    
-                } else {
-                    metadata[promptObj.name] = content;
-                }
-                
+                metadata[promptObj.name] = content;     
             }
             const embed = {
                 color: 0xffffff,
@@ -60,7 +44,6 @@ module.exports = {
                     { name: "Title", value: metadata.title },
                     { name: "Artist", value: metadata.artist },
                     { name: "Album", value: metadata.album },
-                    { name: "Cover image?", value: metadata.cover ? "Yes" : "No" },
                 ],
                 timestamp: new Date(),
             };
@@ -86,13 +69,12 @@ module.exports = {
                 title: metadata.title,
                 artist: metadata.artist,
                 album: metadata.album,
-                APIC: metadata.coverURL ? metadata.coverURL : null,
             };
 
-            const success = NodeID3.write(tags, downloadedFilePath);
+            const success = await NodeID3.write(tags, downloadedFilePath);
             if (success === true) {
                 message.reply("Video downloaded and metadata embedded successfully!");
-                await fs.rename(downloadedFilePath, `${outputFolderCompleted}/${metadata.title} - ${metadata.artist}.mp3`);
+                // await fs.rename(downloadedFilePath, `${outputFolderCompleted}/${metadata.title} - ${metadata.artist}.mp3`);
             } else {
                 logger.error("Error embedding metadata:" + success);
                 message.reply("Failed to embed metadata into the downloaded MP3 file.");
