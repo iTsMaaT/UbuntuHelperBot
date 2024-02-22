@@ -88,7 +88,7 @@ module.exports = {
                                 reject(`yt-dlp process exited with code ${code}`);
                             } else {
                                 // Embed metadata into the downloaded MP3 file
-                                const downloadedFilePath = `${outputFolder}/${realOutputFile}`;
+                                const downloadedFilePath = realOutputFile;
                                 const tags = {
                                     title: metadata.title,
                                     artist: metadata.artist,
