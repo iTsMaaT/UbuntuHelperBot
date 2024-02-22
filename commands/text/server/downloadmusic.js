@@ -96,14 +96,13 @@ module.exports = {
                                     APIC: metadata.coverURL ? metadata.coverURL : null,
                                 };
         
-                                NodeID3.write(tags, downloadedFilePath, function(err) {
-                                    if (err) {
-                                        logger.error("Error embedding metadata:", err);
-                                        reject("Failed to embed metadata into the downloaded MP3 file.");
-                                    } else {
-                                        resolve("Video downloaded and metadata embedded successfully!");
-                                    }
-                                });
+                                const success = NodeID3.write(tags, downloadedFilePath);
+                                if (success === true) {
+                                    resolve("Video downloaded and metadata embedded successfully!");
+                                } else {
+                                    logger.error("Error embedding metadata:" + success);
+                                    reject("Failed to embed metadata into the downloaded MP3 file.");
+                                }
                             }
                         });
                     }).catch(err => {
