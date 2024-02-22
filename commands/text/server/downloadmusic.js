@@ -41,7 +41,7 @@ module.exports = {
                         metadata.cover = null;
                     } else {
                         try {
-                            const response = await (await fetch(content)).buffer();
+                            const response = await (await fetch(content)).arrayBuffer();
                             const coverBuffer = await response.buffer();
                             metadata.cover = coverBuffer;
                         } catch (error) {
