@@ -45,7 +45,6 @@ module.exports = {
                         const coverBuffer = await response.buffer();
                         metadata.cover = coverBuffer;
                     } catch (error) {
-                        await promptMessage.delete();
                         return message.reply(`Error fetching cover image: ${error.message}`);
                     }
                 }
