@@ -12,6 +12,7 @@
     "discord.js": "^14.14.1",
     "dotenv": "^16.3.1",
     "module-alias": "^2.2.3",
+    "node-id3": "^0.2.6",
     "pretty-ms": "^7.0.1",
     "prometheus-query": "^3.3.3"
   },
