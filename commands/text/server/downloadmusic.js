@@ -36,10 +36,19 @@ module.exports = {
                 await promptMessage.delete();
                 await collected.first().delete();
 
-                if (promptObj.name === "cover" && content.toLowerCase() === "skip") 
+                if (promptObj.name === "cover" && content.toLowerCase() === "skip") {
                     metadata.cover = null;
-                else 
+                } else {
                     metadata[promptObj.name] = content;
+                    try {
+                        const response = await (await fetch(content)).buffer();
+                        const coverBuffer = await response.buffer();
+                        metadata.cover = coverBuffer;
+                    } catch (error) {
+                        await promptMessage.delete();
+                        return message.reply(`Error fetching cover image: ${error.message}`);
+                    }
+                }
                 
             }
             const embed = {
