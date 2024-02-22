@@ -37,7 +37,7 @@ module.exports = {
                 await collected.first().delete();
 
                 if (promptObj.name === "cover") {
-                    if (promptObj.content == null) {
+                    if (content == "skip") {
                         metadata.cover = null;
                     } else {
                         try {
@@ -72,6 +72,7 @@ module.exports = {
 
         try {
             const metadata = await collectMetadata();
+            console.log(metadata);
             message.reply("Attempting download...");
 
             const downloadedFilePath = `${outputFolderBusy}/${metadata.title} - ${metadata.artist}.mp3`;
