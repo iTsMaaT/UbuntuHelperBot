@@ -55,59 +55,65 @@ module.exports = {
             return metadata;
         };
 
-        const downloadOperation = async () => {
-            try {
-                const metadata = await collectMetadata();
-                message.reply("Attempting download...");
-
-                const ytDlpProcess = spawn(downloadCommand[0], downloadCommand.slice(1));
-                let stdoutTimer;
-
-                ytDlpProcess.stdout.on("data", data => {
-                    clearTimeout(stdoutTimer);
-                    stdoutTimer = setTimeout(() => {
-                        ytDlpProcess.kill();
-                        reject("No stdout received for 5 minutes, process terminated.");
-                    }, 5 * 60 * 1000); // 5 minutes
-
-                    logger.info(`stdout: ${data}`);
-                });
-
-                ytDlpProcess.stderr.on("data", data => {
-                    logger.error(`stderr: ${data}`);
-                    message.channel.send(`Error: ${data}`);
-                });
-
-                ytDlpProcess.on("close", code => {
-                    clearTimeout(stdoutTimer);
-                    if (code !== 0) {
-                        logger.error(`yt-dlp process exited with code ${code}`);
-                        reject(`yt-dlp process exited with code ${code}`);
-                    } else {
-                        // Embed metadata into the downloaded MP3 file
-                        const downloadedFilePath = `${outputFolder}/${metadata.title}.mp3`;
-                        const tags = {
-                            title: metadata.title,
-                            artist: metadata.artist,
-                            album: metadata.album,
-                            APIC: metadata.coverURL ? metadata.coverURL : null,
-                        };
-
-                        NodeID3.write(tags, downloadedFilePath, function(err) {
-                            if (err) {
-                                logger.error("Error embedding metadata:", err);
-                                reject("Failed to embed metadata into the downloaded MP3 file.");
+        const downloadOperation = () => {
+            return new Promise((resolve, reject) => {
+                try {
+                    collectMetadata().then(metadata => {
+                        message.reply("Attempting download...");
+        
+                        const ytDlpProcess = spawn(downloadCommand[0], downloadCommand.slice(1));
+                        let stdoutTimer;
+        
+                        ytDlpProcess.stdout.on("data", data => {
+                            clearTimeout(stdoutTimer);
+                            stdoutTimer = setTimeout(() => {
+                                ytDlpProcess.kill();
+                                reject("No stdout received for 5 minutes, process terminated.");
+                            }, 5 * 60 * 1000); // 5 minutes
+        
+                            logger.info(`stdout: ${data}`);
+                        });
+        
+                        ytDlpProcess.stderr.on("data", data => {
+                            logger.error(`stderr: ${data}`);
+                            message.channel.send(`Error: ${data}`);
+                        });
+        
+                        ytDlpProcess.on("close", code => {
+                            clearTimeout(stdoutTimer);
+                            if (code !== 0) {
+                                logger.error(`yt-dlp process exited with code ${code}`);
+                                reject(`yt-dlp process exited with code ${code}`);
                             } else {
-                                resolve("Video downloaded and metadata embedded successfully!");
+                                // Embed metadata into the downloaded MP3 file
+                                const downloadedFilePath = `${outputFolder}/${metadata.title}.mp3`;
+                                const tags = {
+                                    title: metadata.title,
+                                    artist: metadata.artist,
+                                    album: metadata.album,
+                                    APIC: metadata.coverURL ? metadata.coverURL : null,
+                                };
+        
+                                NodeID3.write(tags, downloadedFilePath, function(err) {
+                                    if (err) {
+                                        logger.error("Error embedding metadata:", err);
+                                        reject("Failed to embed metadata into the downloaded MP3 file.");
+                                    } else {
+                                        resolve("Video downloaded and metadata embedded successfully!");
+                                    }
+                                });
                             }
                         });
-                    }
-                });
-            } catch (err) {
-                logger.error(err);
-                reject("An error occurred executing the command");
-            }
-        };
+                    }).catch(err => {
+                        logger.error(err);
+                        reject("An error occurred executing the command");
+                    });
+                } catch (err) {
+                    logger.error(err);
+                    reject("An error occurred executing the command");
+                }
+            });
+        };        
 
         try {
             const result = await addToQueue("download", downloadOperation);
