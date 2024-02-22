@@ -42,8 +42,7 @@ module.exports = {
                     } else {
                         try {
                             const response = await (await fetch(content)).arrayBuffer();
-                            const coverBuffer = await response.buffer();
-                            metadata.cover = coverBuffer;
+                            metadata.cover = response;
                         } catch (error) {
                             return message.reply(`Error fetching cover image: ${error.message}`);
                         }
