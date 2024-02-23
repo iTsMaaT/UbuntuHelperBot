@@ -74,7 +74,7 @@ module.exports = {
             const success = await NodeID3.write(tags, downloadedFilePath);
             if (success === true) {
                 message.reply("Video downloaded and metadata embedded successfully!");
-                await new Promise((resolve) => setTimeout(resolve, 5 * 1000));
+                await new Promise((resolve) => setTimeout(resolve, 7 * 1000));
                 // Rename the file after it's completely written and closed
                 await fs.rename(downloadedFilePath, `${outputFolderCompleted}/${metadata.title} - ${metadata.artist}.mp3`);
             } else {
