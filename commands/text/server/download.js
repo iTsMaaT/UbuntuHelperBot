@@ -16,7 +16,7 @@ module.exports = {
             try {
                 message.reply("Attempting download...");
                 const result = await youtubedl(videoUrl, {
-                    "sponsorblock-remove": "default",
+                    // "sponsorblock-remove": "default",
                     output: `${outputFolder}/%(title)s.%(ext)s`,
                     format: "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best",
                 });
