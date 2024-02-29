@@ -12,6 +12,7 @@ module.exports = {
 
         const outputFolder = "/mnt/jellyfin";
         const downloadOptions = {
+            "sponsorblock-remove": "default",
             prefer_ffmpeg: true,
             o: `${outputFolder}/%(title)s.%(ext)s`,
         };

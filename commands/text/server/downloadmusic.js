@@ -60,6 +60,7 @@ module.exports = {
             const downloadedFilePath = `${outputFolderBusy}/${metadata.title} - ${metadata.artist}.mp3`;
 
             await youtubeDlExec(videoUrl, {
+                "sponsorblock-remove": "default",
                 extractAudio: true,
                 audioFormat: "mp3",
                 output: downloadedFilePath,
