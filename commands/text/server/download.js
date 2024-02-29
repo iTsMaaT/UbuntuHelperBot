@@ -13,7 +13,7 @@ module.exports = {
         const outputFolder = "/mnt/jellyfin";
         const downloadOptions = {
             "sponsorblock-remove": "default",
-            outputFolder: `${outputFolder}/%(title)s.%(ext)s`,
+            output: `${outputFolder}/%(title)s.%(ext)s`,
             format: "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best",
         };
 
