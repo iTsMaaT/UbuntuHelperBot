@@ -10,21 +10,20 @@ module.exports = {
         const videoUrl = args[0];
         if (!videoUrl) return message.reply("You must provide a valid URL");
 
-        const outputFolder = "/mnt/jellyfin";
-        const downloadOptions = {
-            "sponsorblock-remove": "default",
-            output: `${outputFolder}/%(title)s.%(ext)s`,
-            format: "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best",
-        };
+        const outputFolder = "/mnt/jellyfin/Videos";
 
         const downloadOperation = async () => {
             try {
                 message.reply("Attempting download...");
-                const result = await youtubedl(videoUrl, downloadOptions);
-                console.log("Download result:", result);
+                const result = await youtubedl(videoUrl, {
+                    "sponsorblock-remove": "default",
+                    output: `${outputFolder}/%(title)s.%(ext)s`,
+                    format: "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best",
+                });
+                logger.info("Download result:" + result);
                 message.reply("Video downloaded successfully!");
             } catch (err) {
-                console.error("Error occurred during download:", err);
+                logger.error("Error occurred during download:", err);
                 message.reply("An error occurred during the download process.");
                 throw err; // Rethrow the error to be caught by the queue system
             }
@@ -33,7 +32,7 @@ module.exports = {
         try {
             await addToQueue("download", downloadOperation);
         } catch (err) {
-            console.error("Error adding download operation to the queue:", err);
+            logger.error("Error adding download operation to the queue:", err);
             message.reply("An error occurred while adding the download operation to the queue.");
         }
     },
