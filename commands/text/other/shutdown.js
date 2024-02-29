@@ -5,7 +5,6 @@ module.exports = {
     name: "shutdown",
     category: "utils",
     description: "Shutdowns the bot from discord",
-    private: true,
     async execute(logger, client, message, args) {
         const server = process.env.SERVER;
 

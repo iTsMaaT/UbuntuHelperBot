@@ -1,18 +1,17 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
 const { prettyString } = require("@functions/formattingFunctions");
+const { prefix } = require("@root/utils/config.json");
 
 module.exports = {
     name: "help",
     description: "Lists commands",
     category: "utils",
-    private: false,
     usage: "< [Command name (Optional)] >",
     async execute(logger, client, message, args) {
-        const prefix = global.GuildManager.GetPrefix(message.guild);
 
         if (args[0]) {
             const CommandName = client.commands.get(args[0]);
-            if (!CommandName || CommandName.private) return SendErrorEmbed(message, "This command doesn't exist.", "red");
+            if (!CommandName || CommandName.private) return message.reply("This command doesn't exist.", "red");
 
             const CommandEmbed = {
                 title: `**${prefix}${CommandName.name}** ${CommandName.usage ?? ""}`,
@@ -38,11 +37,9 @@ module.exports = {
         const addedCommands = new Set(); // Keep track of added commands
         client.commands.each((val) => {
             if (!val.private && !addedCommands.has(val.name)) {
-                if (categorymapper[val.category]) 
-                    categorymapper[val.category][`**${val.name}${val.aliases ? ` [${(val.aliases).join(", ")}]` : ""}: **`] = (prettyString(val.description, "first", true));
-                else 
-                    categorymapper[val.category] = {};
+                if (!categorymapper[val.category]) categorymapper[val.category] = {};
                 
+                categorymapper[val.category][`**${val.name}${val.aliases ? ` [${(val.aliases).join(", ")}]` : ""}: **`] = (prettyString(val.description, "first", true));
                 addedCommands.add(val.name);
             }
         });
@@ -60,6 +57,7 @@ module.exports = {
                 groupedObject[chunkedCategory] = chunkCommands.map(([name, value]) => ({ name, value }));
             }
         });
+        console.log(groupedObject);
 
         const categories = Object.keys(groupedObject);
 

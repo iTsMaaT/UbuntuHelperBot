@@ -4,7 +4,6 @@ module.exports = {
     name: "restart",
     description: "Restart the bot from discord",
     category: "utils",
-    private: true,
     async execute(logger, client, message, args) {
         const server = process.env.SERVER;
 
