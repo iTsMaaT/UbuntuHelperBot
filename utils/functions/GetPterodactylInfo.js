@@ -14,6 +14,7 @@ const GetPterodactylInfo = async function(serverID) {
     let NETWORKin = "";
     let NETWORKout = "";
     let BOTuptime = "";
+    let serverStatus = "";
 
     try {
         const [serverResponse, resourcesResponse] = await Promise.all([
@@ -44,11 +45,16 @@ const GetPterodactylInfo = async function(serverID) {
         IPport = serverJson.attributes.relationships.allocations.data[0].attributes.port;
         
         const resourcesJson = await resourcesResponse.json();
-        const serverStatus = resourcesJson.attributes.current_state;
+        serverStatus = resourcesJson.attributes.current_state;
 
-        if (serverStatus != online) {
+        if (serverStatus != "running") {
             return {
-                serverStatus,
+                status: serverStatus,
+                main: {
+                    name: serverName,
+                    ip: IPalias,
+                    port: IPport,
+                },
             };}
         
         RAMusage = resourcesJson.attributes.resources.memory_bytes;
