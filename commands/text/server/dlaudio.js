@@ -10,7 +10,7 @@ module.exports = {
     aliases: ["dlmp3"],
     async execute(logger, client, message, args) {
         if (!args) return message.reply("You must enter a link");
-        const urlArray = getYoutubePlaylistVideos(args[0]);
+        const urlArray = await getYoutubePlaylistVideos(args[0]);
 
         const promptMessage = await message.channel.send("Do you want to download one by one or mass download? (mass/one)");
         const filter = response => !response.author.bot;
@@ -48,12 +48,16 @@ async function getYoutubePlaylistVideos(url) {
 
     try {
         switch (linkType) {
-            case "video":
+            case "video": {
                 videoArray.push("https://www.youtube.com/watch?v=" + (await YouTube.getVideo(url)).id);
                 break;
-            case "playlist":
-                videoArray.push(... (await YouTube.getPlaylist(url, { fetchAll: true })).videos.map(v => v.url));
+            }
+            case "playlist": {
+                const videoObj = await YouTube.getPlaylist(url, { fetchAll: true });
+                const videoArr = videoObj.videos.map(v => v.url);
+                videoArray.push(...videoArr);
                 break;    
+            }
         }
         return videoArray;
     } catch (err) {
