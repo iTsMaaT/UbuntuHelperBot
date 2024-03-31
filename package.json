@@ -4,18 +4,21 @@
   "description": "A discord bot to get alerts or execute commands on a remote ubuntu server",
   "main": "index.js",
   "scripts": {
-    "test": "git pull && npm i && code UbuntuHelper.code-workspace && eslint --no-fix ."
+    "code": "git pull && npm i && code UbuntuHelper.code-workspace && eslint --no-fix .",
+    "c": "npm run code"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cheerio": "^1.0.0-rc.12",
     "discord.js": "^14.14.1",
     "dotenv": "^16.3.1",
     "module-alias": "^2.2.3",
     "node-id3": "^0.2.6",
     "pretty-ms": "^7.0.1",
     "prometheus-query": "^3.3.3",
-    "youtube-dl-exec": "^2.5.7"
+    "youtube-dl-exec": "^2.5.7",
+    "youtube-sr": "^4.3.10"
   },
   "devDependencies": {
     "eslint": "^8.56.0"
