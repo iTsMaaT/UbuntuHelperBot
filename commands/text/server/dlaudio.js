@@ -115,8 +115,8 @@ async function handleOneByOne(message, urlArray) {
             const metadata = await collectMetadata();
             await dlVid(message, videoUrl, metadata);
         } catch (err) {
+            message.reply(`Failed to download: ${videoUrl}`);
             logger.error(err);
-            message.reply("An error occurred executing the command");
         }
     }
 }
@@ -145,23 +145,32 @@ async function handleMass(message, urlArray) {
         await collected.first().delete();
 
         for (const videoUrl of urlArray) {
-            const VidInfo = await YouTube.getVideo(videoUrl);
-            const tags = {
-                title: VidInfo.title,
-                artist: content,
-            };
-            await dlVid(message, videoUrl, tags);
+            try {
+                const VidInfo = await YouTube.getVideo(videoUrl);
+                const tags = {
+                    title: VidInfo.title,
+                    artist: content,
+                };
+                await dlVid(message, videoUrl, tags);
+            } catch (err) {
+                message.reply(`Failed to download: ${videoUrl}`);
+                logger.error(err);
+            }
         }
     } else if (content == "n" || content == "no") {
         for (const videoUrl of urlArray) {
-            const VidInfo = await YouTube.getVideo(videoUrl);
-            const tags = {
-                title: VidInfo.title,
-                artist: VidInfo.channel.name,
-            };
-            await dlVid(message, videoUrl, tags);
-        }
-            
+            try {
+                const VidInfo = await YouTube.getVideo(videoUrl);
+                const tags = {
+                    title: VidInfo.title,
+                    artist: VidInfo.channel.name,
+                };
+                await dlVid(message, videoUrl, tags);
+            } catch (err) {
+                message.reply(`Failed to download: ${videoUrl}`);
+                logger.error(err);
+            }
+        }  
     }
 }
 
