@@ -206,23 +206,21 @@ async function handleMass(message, urlArray) {
 async function dlVid(message, url, tags) {
     try {
         let downloadedFilePath;
-        if (tags.artist) downloadedFilePath = `${outputFolderBusy}/${tags.title} - ${tags.artist}.mp3`;
-        else downloadedFilePath = `${outputFolderBusy}/${(await YouTube.getVideo(url).title)}.mp3`;
-
-        downloadedFilePath = downloadedFilePath.replace("/", "_");
+        if (tags.artist) downloadedFilePath = `/${tags.title.replace("/", "_")} - ${tags.artist.replace("/", "_")}.mp3`;
+        else downloadedFilePath = `/${(await YouTube.getVideo(url).title).replace("/", "_")}.mp3`;
 
         await youtubeDlExec(url, {
             "sponsorblock-remove": "default",
             extractAudio: true,
             audioFormat: "mp3",
-            output: downloadedFilePath,
+            output: `${outputFolderBusy}${downloadedFilePath}`,
         });
 
         const success = await NodeID3.write(tags, downloadedFilePath);
         if (success === true) {
             await new Promise((resolve) => setTimeout(resolve, 7 * 1000));
             // Rename the file after it's completely written and closed
-            await fs.rename(downloadedFilePath, `${outputFolderCompleted}/${tags.title} - ${tags.artist}.mp3`);
+            await fs.rename(`${outputFolderBusy}${downloadedFilePath}`, `${outputFolderCompleted}/${downloadedFilePath}`);
         } else {
             logger.error("Error embedding metadata:" + success);
         }
