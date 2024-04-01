@@ -147,6 +147,7 @@ async function handleOneByOne(message, urlArray) {
 }
 
 async function handleMass(message, urlArray) {
+    let fails = 0;
     let promptMessage = await message.channel.send("Do you wish to enter a artist that will be applied to all files? (y/n)");
     const filter = response => !response.author.bot;
     let collected = await message.channel.awaitMessages({ filter, max: 1, time: 60000, errors: ["time"] });
@@ -169,7 +170,6 @@ async function handleMass(message, urlArray) {
         await promptMessage.delete();
         await collected.first().delete();
 
-        let fails = 0;
         for (const videoUrl of urlArray) {
             try {
                 const VidInfo = await YouTube.getVideo(videoUrl);
@@ -208,6 +208,8 @@ async function dlVid(message, url, tags) {
         let downloadedFilePath;
         if (tags.artist) downloadedFilePath = `${outputFolderBusy}/${tags.title} - ${tags.artist}.mp3`;
         else downloadedFilePath = `${outputFolderBusy}/${(await YouTube.getVideo(url).title)}.mp3`;
+
+        downloadedFilePath = downloadedFilePath.replace("/", "_");
 
         await youtubeDlExec(url, {
             "sponsorblock-remove": "default",
