@@ -216,7 +216,7 @@ async function dlVid(message, url, tags) {
             output: `${outputFolderBusy}${downloadedFilePath}`,
         });
 
-        const success = await NodeID3.write(tags, downloadedFilePath);
+        const success = await NodeID3.write(tags, `${outputFolderBusy}${downloadedFilePath}`);
         if (success === true) {
             await new Promise((resolve) => setTimeout(resolve, 7 * 1000));
             // Rename the file after it's completely written and closed
