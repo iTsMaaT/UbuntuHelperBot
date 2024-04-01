@@ -2,6 +2,7 @@ const fs = require("fs/promises");
 const NodeID3 = require("node-id3");
 const YouTube = require("youtube-sr").default;
 const youtubeDlExec = require("youtube-dl-exec");
+const prettyms = require("pretty-ms");
 
 module.exports = {
     name: "downloadmusic",
@@ -23,17 +24,38 @@ module.exports = {
         await promptMessage.delete();
         await collected.first().delete();
 
+        const linkAmount = urlArray.length;
+        const startTime = Date.now();
+        let fails = 0;
+
         switch (content) {
+            case "m":
             case "mass":
-                await handleMass(message, urlArray);
+                fails = await handleMass(message, urlArray);
                 break;
+            case "o":
             case "one":
-                await handleOneByOne(message, urlArray);
+                fails = await handleOneByOne(message, urlArray);
                 break;
             default: 
                 message.reply("Invalid input");
                 break;
         }
+
+        const totalTime = prettyms(Date.now() - startTime);
+
+        const embed = {
+            color: 0xffffff,
+            title: "Download finished",
+            fields: [
+                { name: "Amount of downloads", value: linkAmount },
+                { name: "Success rate", value: `${fails} fails | ${linkAmount - fails} Successes` },
+                { name: "Time for operation", value: totalTime },
+            ],
+            timestamp: new Date(),
+        };
+
+        await message.reply({ embeds: [embed] });
     },
 };
 
@@ -110,6 +132,7 @@ async function handleOneByOne(message, urlArray) {
 
         return metadata;
     };
+    let fails = 0;
     for (const videoUrl of urlArray) {
         try {
             const metadata = await collectMetadata();
@@ -117,8 +140,10 @@ async function handleOneByOne(message, urlArray) {
         } catch (err) {
             message.reply(`Failed to download: ${videoUrl}`);
             logger.error(err);
+            fails += 1;
         }
     }
+    return fails;
 }
 
 async function handleMass(message, urlArray) {
@@ -144,6 +169,7 @@ async function handleMass(message, urlArray) {
         await promptMessage.delete();
         await collected.first().delete();
 
+        let fails = 0;
         for (const videoUrl of urlArray) {
             try {
                 const VidInfo = await YouTube.getVideo(videoUrl);
@@ -155,6 +181,7 @@ async function handleMass(message, urlArray) {
             } catch (err) {
                 message.reply(`Failed to download: ${videoUrl}`);
                 logger.error(err);
+                fails += 1;
             }
         }
     } else if (content == "n" || content == "no") {
@@ -169,9 +196,11 @@ async function handleMass(message, urlArray) {
             } catch (err) {
                 message.reply(`Failed to download: ${videoUrl}`);
                 logger.error(err);
+                fails += 1;
             }
         }  
     }
+    return fails;
 }
 
 async function dlVid(message, url, tags) {
