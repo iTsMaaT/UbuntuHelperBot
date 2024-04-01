@@ -5,6 +5,7 @@ module.exports = {
     description: "Evaluates code",
     category: "server",
     async execute(logger, client, message, args) {
+        let embed;
         const command = args.join(" ");
         const clean = async (text) => {
             if (text && text.constructor.name == "Promise")
