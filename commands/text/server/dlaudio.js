@@ -138,7 +138,6 @@ async function handleOneByOne(message, urlArray) {
             const metadata = await collectMetadata();
             await dlVid(message, videoUrl, metadata);
         } catch (err) {
-            message.reply(`Failed to download: ${videoUrl}`);
             logger.error(err);
             fails += 1;
         }
@@ -179,7 +178,6 @@ async function handleMass(message, urlArray) {
                 };
                 await dlVid(message, videoUrl, tags);
             } catch (err) {
-                message.reply(`Failed to download: ${videoUrl}`);
                 logger.error(err);
                 fails += 1;
             }
@@ -194,7 +192,6 @@ async function handleMass(message, urlArray) {
                 };
                 await dlVid(message, videoUrl, tags);
             } catch (err) {
-                message.reply(`Failed to download: ${videoUrl}`);
                 logger.error(err);
                 fails += 1;
             }
@@ -206,8 +203,8 @@ async function handleMass(message, urlArray) {
 async function dlVid(message, url, tags) {
     try {
         let downloadedFilePath;
-        if (tags.artist) downloadedFilePath = `/${tags.title.replace("/", "_")} - ${tags.artist.replace("/", "_")}.mp3`;
-        else downloadedFilePath = `/${(await YouTube.getVideo(url).title).replace("/", "_")}.mp3`;
+        if (tags.artist) downloadedFilePath = `/${tags.title.replaceAll("/", "_")} - ${tags.artist.replaceAll("/", "_")}.mp3`;
+        else downloadedFilePath = `/${(await YouTube.getVideo(url).title).replaceAll("/", "_")}.mp3`;
 
         await youtubeDlExec(url, {
             "sponsorblock-remove": "default",
@@ -227,5 +224,6 @@ async function dlVid(message, url, tags) {
     } catch (err) {
         message.reply(`Failed to download: ${url}`);
         logger.error(err);
+        throw new Error(err);
     }
 }
