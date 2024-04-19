@@ -28,7 +28,7 @@ module.exports = {
         const startTime = Date.now();
         let fails = 0;
 
-        switch (content) {
+        switch (content.toLowerCase()) {
             case "m":
             case "mass":
                 fails = await handleMass(message, urlArray);
@@ -37,9 +37,11 @@ module.exports = {
             case "one":
                 fails = await handleOneByOne(message, urlArray);
                 break;
-            default: 
+            default: {
                 message.reply("Invalid input");
+                fails = linkAmount;
                 break;
+            }
         }
 
         const totalTime = prettyms(Date.now() - startTime);
