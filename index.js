@@ -3,7 +3,6 @@ const { Client, GatewayIntentBits, Events, Partials, ActivityType, PermissionFla
 const { prefix, ownerID } = require ("@root/utils/config.json");
 
 const MinecraftNotifier = require("./utils/MineCraftListener.js");
-require("./utils/MinecraftAPI.js");
 
 const Logger = require("./utils/log");
 const fs = require("fs");
@@ -120,16 +119,16 @@ loadFiles("./events/process/", function(event) {
 });
 
 const MCServerListener = MinecraftNotifier.getInstance([
-    { ip: "survie.srv1.kpotatto.net" },
-    { ip: "creatif.srv1.kpotatto.net" },
-    { ip: "pepionline.dimitrodam.com" },
+    { ip: "srv1.kpotatto.net" },
+    { ip: "srv3.kpotatto.net", port: 23551 },
+    { ip: "serviceski.sfcnet.me" },
+    { ip: "mc.hypixel.net" },
 ]);
 
 MCServerListener.start();
 
 loadFiles("./events/minecraftNotifier/", function(event) {
     MCServerListener.on(event.name, async (...args) => {
-        console.log("event");
         if (event.log) global.logger.event(`Event: [${event.name}] fired.`);
         await event.execute(client, global.logger, ...args);
     });

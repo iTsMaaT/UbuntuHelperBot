@@ -1,5 +1,5 @@
 const cron = require("cron");
-const mcProtocol = require("minecraft-protocol");
+const { ping } = require("./mcping-js/mcping.js");
 const dns = require("dns");
 const { EventEmitter } = require("node:events");
 // const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -86,19 +86,7 @@ class MinecraftNotifier extends EventEmitter {
                 if (!address.port) address.port = null;
                 let currentInfo;
                 try {
-                    currentInfo = await (await fetch("http://localhost:3000", { 
-                        body: JSON.stringify({
-                            host: address.ip,
-                            port: address.port,
-                        }),
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        method: "POST",
-                        signal: AbortSignal.timeout(5000),
-                    })).json();
-
-                    console.log(currentInfo);
+                    currentInfo = await ping({ host: address.ip, port: address.port });
                     currentInfo.online = true;
                 } catch (err) {
                     logger.error(err);
@@ -117,7 +105,6 @@ class MinecraftNotifier extends EventEmitter {
                     icon: currentInfo?.favicon,
                 };
 
-                console.log(this.playersByServer[address.ip]);
 
                 this.emit("singleServerCheck", address.ip, this.playersByServer[address.ip]);
 
@@ -163,7 +150,6 @@ class MinecraftNotifier extends EventEmitter {
                 await wait(1000);
             }
         });
-        console.log("cron start");
         this.adressesCheck.start();
     }
 
