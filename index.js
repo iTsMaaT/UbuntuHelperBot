@@ -123,6 +123,7 @@ const MCServerListener = MinecraftNotifier.getInstance([
     { ip: "srv3.kpotatto.net", port: 23551 },
     { ip: "serviceski.sfcnet.me" },
     { ip: "mc.hypixel.net" },
+    { ip: "srv4.kpotatto.net", port: 10002 },
 ]);
 
 MCServerListener.start();

@@ -18,7 +18,7 @@ class MinecraftServer {
         // Set a manual timeout interval
         // This ensures the connection will NEVER hang regardless of internal state
         const timeoutTask = setTimeout(() => {
-            socket.emit("error", new Error("Socket timeout"));
+            // socket.emit("error", new Error("Socket timeout"));
         }, timeout);
 
         const closeSocket = () => {
