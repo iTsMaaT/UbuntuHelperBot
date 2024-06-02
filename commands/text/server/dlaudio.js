@@ -3,7 +3,7 @@ const NodeID3 = require("node-id3");
 const YouTube = require("youtube-sr").default;
 const youtubeDlExec = require("youtube-dl-exec");
 const prettyms = require("pretty-ms");
-
+const { generateProgressBar } = require("@functions/formattingFunctions");
 module.exports = {
     name: "downloadmusic",
     description: "Downloads songs from a YouTube playlist as MP3s with metadata for Jellyfin",
@@ -20,7 +20,7 @@ module.exports = {
         if (!collected || !collected.first()) 
             return message.reply("You must reply");
             
-        const content = collected.first().content.trim();
+        const content = collected.first().content.trim().toLowerCase();
         await promptMessage.delete();
         await collected.first().delete();
 
@@ -37,20 +37,24 @@ module.exports = {
             case "one":
                 fails = await handleOneByOne(message, urlArray);
                 break;
-            default: 
+            default: {
                 message.reply("Invalid input");
+                fails = linkAmount;
                 break;
+            }
         }
 
         const totalTime = prettyms(Date.now() - startTime);
+        const successes = linkAmount - fails;
 
         const embed = {
             color: 0xffffff,
             title: "Download finished",
             fields: [
                 { name: "Amount of downloads", value: linkAmount },
-                { name: "Success rate", value: `${fails} fails | ${linkAmount - fails} Successes` },
-                { name: "Time for operation", value: totalTime },
+                { name: "Success rate", value: `${fails} fails | ${successes} Successes` },
+                { name: "Success bar", value: generateProgressBar({ current: successes, max: linkAmount, withPercentage: true }) },
+                { name: "Time of operation", value: totalTime },
             ],
             timestamp: new Date(),
         };
@@ -138,7 +142,6 @@ async function handleOneByOne(message, urlArray) {
             const metadata = await collectMetadata();
             await dlVid(message, videoUrl, metadata);
         } catch (err) {
-            message.reply(`Failed to download: ${videoUrl}`);
             logger.error(err);
             fails += 1;
         }
@@ -179,7 +182,6 @@ async function handleMass(message, urlArray) {
                 };
                 await dlVid(message, videoUrl, tags);
             } catch (err) {
-                message.reply(`Failed to download: ${videoUrl}`);
                 logger.error(err);
                 fails += 1;
             }
@@ -194,7 +196,6 @@ async function handleMass(message, urlArray) {
                 };
                 await dlVid(message, videoUrl, tags);
             } catch (err) {
-                message.reply(`Failed to download: ${videoUrl}`);
                 logger.error(err);
                 fails += 1;
             }
@@ -206,8 +207,8 @@ async function handleMass(message, urlArray) {
 async function dlVid(message, url, tags) {
     try {
         let downloadedFilePath;
-        if (tags.artist) downloadedFilePath = `/${tags.title.replace("/", "_")} - ${tags.artist.replace("/", "_")}.mp3`;
-        else downloadedFilePath = `/${(await YouTube.getVideo(url).title).replace("/", "_")}.mp3`;
+        if (tags.artist) downloadedFilePath = `/${tags.title.replaceAll("/", "_")} - ${tags.artist.replaceAll("/", "_")}.mp3`;
+        else downloadedFilePath = `/${(await YouTube.getVideo(url).title).replaceAll("/", "_")}.mp3`;
 
         await youtubeDlExec(url, {
             "sponsorblock-remove": "default",
@@ -227,5 +228,6 @@ async function dlVid(message, url, tags) {
     } catch (err) {
         message.reply(`Failed to download: ${url}`);
         logger.error(err);
+        throw new Error(err);
     }
 }

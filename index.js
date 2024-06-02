@@ -2,6 +2,8 @@ require("module-alias/register");
 const { Client, GatewayIntentBits, Events, Partials, ActivityType, PermissionFlagsBits } = require("discord.js");
 const { prefix, ownerID } = require ("@root/utils/config.json");
 
+const MinecraftNotifier = require("./utils/MineCraftListener.js");
+
 const Logger = require("./utils/log");
 const fs = require("fs");
 
@@ -109,12 +111,29 @@ loadFiles("./commands/text/", function(command) {
 //     }
 // });
 
-// loadFiles("./events/process/", function(event) {
-//     process.on(event.name, async (...args) => {
-//         if (event.log) global.logger.event(`Event: [${event.name}] fired.`);
-//         await event.execute(client, global.logger, ...args);
-//     });
-// });
+loadFiles("./events/process/", function(event) {
+    process.on(event.name, async (...args) => {
+        if (event.log) global.logger.event(`Event: [${event.name}] fired.`);
+        await event.execute(client, global.logger, ...args);
+    });
+});
+
+const MCServerListener = MinecraftNotifier.getInstance([
+    { ip: "srv1.kpotatto.net" },
+    { ip: "srv3.kpotatto.net", port: 23551 },
+    { ip: "serviceski.sfcnet.me" },
+    { ip: "mc.hypixel.net" },
+    { ip: "srv4.kpotatto.net", port: 10002 },
+]);
+
+MCServerListener.start();
+
+loadFiles("./events/minecraftNotifier/", function(event) {
+    MCServerListener.on(event.name, async (...args) => {
+        if (event.log) global.logger.event(`Event: [${event.name}] fired.`);
+        await event.execute(client, global.logger, ...args);
+    });
+});
 
 // process.stdin.setEncoding("utf8");
 // loadFiles("./events/console/", function(event) {
@@ -136,13 +155,13 @@ loadFiles("./commands/text/", function(command) {
 // 
 //     await command.execute(client, global.logger, args);
 // });
-
-
+        
+        
 // Bot setup on startup
 client.once(Events.ClientReady, async () => {
-    
+            
     global.logger.info(`Bot starting on [${process.env.SERVER}]...`);
-
+            
     console.log("Setting up commands...");
     await client.application.commands.set(discoveredCommands);
     console.log(`${client.slashcommands.size} (/) commands`);
