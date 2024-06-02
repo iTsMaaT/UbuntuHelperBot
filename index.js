@@ -119,10 +119,7 @@ loadFiles("./events/process/", function(event) {
 });
 
 const MCServerListener = MinecraftNotifier.getInstance([
-    { ip: "srv1.kpotatto.net" },
-    { ip: "srv3.kpotatto.net", port: 23551 },
     { ip: "serviceski.sfcnet.me" },
-    { ip: "mc.hypixel.net" },
     { ip: "srv4.kpotatto.net", port: 10002 },
 ]);
 
