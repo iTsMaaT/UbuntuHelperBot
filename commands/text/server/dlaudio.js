@@ -3,7 +3,7 @@ const NodeID3 = require("node-id3");
 const YouTube = require("youtube-sr").default;
 const youtubeDlExec = require("youtube-dl-exec");
 const prettyms = require("pretty-ms");
-
+const { generateProgressBar } = require("@functions/formattingFunctions");
 module.exports = {
     name: "downloadmusic",
     description: "Downloads songs from a YouTube playlist as MP3s with metadata for Jellyfin",
@@ -20,7 +20,7 @@ module.exports = {
         if (!collected || !collected.first()) 
             return message.reply("You must reply");
             
-        const content = collected.first().content.trim();
+        const content = collected.first().content.trim().toLowerCase();
         await promptMessage.delete();
         await collected.first().delete();
 
@@ -28,7 +28,7 @@ module.exports = {
         const startTime = Date.now();
         let fails = 0;
 
-        switch (content.toLowerCase()) {
+        switch (content) {
             case "m":
             case "mass":
                 fails = await handleMass(message, urlArray);
@@ -45,14 +45,16 @@ module.exports = {
         }
 
         const totalTime = prettyms(Date.now() - startTime);
+        const successes = linkAmount - fails;
 
         const embed = {
             color: 0xffffff,
             title: "Download finished",
             fields: [
                 { name: "Amount of downloads", value: linkAmount },
-                { name: "Success rate", value: `${fails} fails | ${linkAmount - fails} Successes` },
-                { name: "Time for operation", value: totalTime },
+                { name: "Success rate", value: `${fails} fails | ${successes} Successes` },
+                { name: "Success bar", value: generateProgressBar({ current: successes, max: linkAmount, withPercentage: true }) },
+                { name: "Time of operation", value: totalTime },
             ],
             timestamp: new Date(),
         };
