@@ -89,7 +89,7 @@ class MinecraftNotifier extends EventEmitter {
                     currentInfo = await ping({ host: address.ip, port: address.port });
                     currentInfo.online = true;
                 } catch (err) {
-                    logger.error(err);
+                    // logger.error(err);
                     currentInfo = { online: false };
                 }
 
