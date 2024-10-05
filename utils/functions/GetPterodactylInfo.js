@@ -2,22 +2,11 @@ const { ToEngineerNotation } = require("@functions/formattingFunctions");
 const prettyMilliseconds = require("pretty-ms");
 
 const GetPterodactylInfo = async function(serverID) {
-    let serverName = "";
-    let RAMlimit = "";
-    let CPUlimit = "";
-    let DISKlimit = "";
-    let IPalias = "";
-    let IPport = "";
-    let RAMusage = "";
-    let CPUusage = "";
-    let DISKusage = "";
-    let NETWORKin = "";
-    let NETWORKout = "";
-    let BOTuptime = "";
-    let serverStatus = "";
+    let serverInfo = {};
+    let resourcesInfo = {};
 
     try {
-        const [serverResponse, resourcesResponse] = await Promise.all([
+        [serverInfo, resourcesInfo] = await Promise.all([
             fetch(`https://${process.env.PTERODACTYL_URL}/api/client/servers/${serverID}`, {
                 method: "GET",
                 headers: {
@@ -25,7 +14,7 @@ const GetPterodactylInfo = async function(serverID) {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${process.env.PTERODACTYL_API_KEY}`,
                 },
-            }),
+            }).then(res => res.json()),
             fetch(`https://${process.env.PTERODACTYL_URL}/api/client/servers/${serverID}/resources`, {
                 method: "GET",
                 headers: {
@@ -33,101 +22,178 @@ const GetPterodactylInfo = async function(serverID) {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${process.env.PTERODACTYL_API_KEY}`,
                 },
-            }),
+            }).then(res => res.json()),
         ]);
-
-        const serverJson = await serverResponse.json();
-        serverName = serverJson.attributes.name;
-        RAMlimit = serverJson.attributes.limits.memory;
-        CPUlimit = serverJson.attributes.limits.cpu;
-        DISKlimit = serverJson.attributes.limits.disk;
-        IPalias = serverJson.attributes.relationships.allocations.data[0].attributes.ip_alias;
-        IPport = serverJson.attributes.relationships.allocations.data[0].attributes.port;
-        
-        const resourcesJson = await resourcesResponse.json();
-        serverStatus = resourcesJson.attributes.current_state;
-
-        if (serverStatus != "running") {
-            return {
-                status: serverStatus,
-                main: {
-                    name: serverName,
-                    ip: IPalias,
-                    port: IPport,
-                },
-            };}
-        
-        RAMusage = resourcesJson.attributes.resources.memory_bytes;
-        CPUusage = resourcesJson.attributes.resources.cpu_absolute;
-        DISKusage = resourcesJson.attributes.resources.disk_bytes;
-        NETWORKin = resourcesJson.attributes.resources.network_rx_bytes;
-        NETWORKout = resourcesJson.attributes.resources.network_tx_bytes;
-        BOTuptime = resourcesJson.attributes.resources.uptime;
     } catch (err) {
-        logger.error(err.stack);
-        return null;
+        console.error(err.stack);
+        throw new Error("An error occurred while fetching the server information");
     }
+
+    const {
+        attributes: {
+            name: serverName,
+            description: serverDescription,
+            limits: { memory: RAMlimit, swap: swapLimit, disk: DISKlimit, io: IOlimit, cpu: CPUlimit },
+            relationships: {
+                allocations: {
+                    data: [{ attributes: { ip_alias: IPalias, port: IPport } }],
+                },
+            },
+            identifier: serverIdentifier,
+            internal_id: internalID,
+            uuid: serverUUID,
+            node: serverNode,
+            is_node_under_maintenance: isNodeUnderMaintenance,
+            sftp_details: { ip: sftpIP, port: sftpPort },
+            invocation: serverInvocation,
+            docker_image: dockerImage,
+            egg_features: eggFeatures,
+            feature_limits: { databases: dbLimit, allocations: allocLimit, backups: backupLimit },
+            is_suspended: isSuspended,
+            is_installing: isInstalling,
+            is_transferring: isTransferring,
+        },
+    } = serverInfo;
+
+    const {
+        attributes: {
+            current_state: serverStatus,
+            resources: {
+                memory_bytes: RAMusage,
+                cpu_absolute: CPUusage,
+                disk_bytes: DISKusage,
+                network_rx_bytes: NETWORKin,
+                network_tx_bytes: NETWORKout,
+                uptime: BOTuptime,
+            } = {},
+        } = {},
+    } = resourcesInfo;
+
+    if (serverStatus !== "running") {
+        return {
+            status: serverStatus,
+            main: {
+                name: serverName,
+                description: serverDescription,
+                identifier: serverIdentifier,
+                internalID: internalID,
+                uuid: serverUUID,
+                node: serverNode,
+                isNodeUnderMaintenance: isNodeUnderMaintenance,
+                sftp: {
+                    ip: sftpIP,
+                    port: sftpPort,
+                },
+                invocation: serverInvocation,
+                dockerImage: dockerImage,
+                eggFeatures: eggFeatures,
+                featureLimits: {
+                    databases: dbLimit,
+                    allocations: allocLimit,
+                    backups: backupLimit,
+                },
+                status: {
+                    isSuspended: isSuspended,
+                    isInstalling: isInstalling,
+                    isTransferring: isTransferring,
+                },
+                ip: IPalias,
+                port: IPport,
+            },
+        };
+    }
+
+    const RAMlimitBytes = RAMlimit * 1024 * 1024;
+    const DISKlimitBytes = DISKlimit * 1024 * 1024;
 
     const info = {
         status: serverStatus,
         ram: {
             limit: {
-                raw: parseInt(RAMlimit) * 1024 * 1024,
-                clean: `${ToEngineerNotation(parseInt(RAMlimit) * 1024 * 1024)}b`,
+                raw: RAMlimitBytes,
+                clean: `${ToEngineerNotation(RAMlimitBytes)}b`,
             },
             usage: {
-                raw: parseInt(RAMusage),
-                clean: `${ToEngineerNotation(parseInt(RAMusage))}b`,
+                raw: RAMusage,
+                clean: `${ToEngineerNotation(RAMusage)}b`,
             },
-            pourcentage: {
-                raw: parseInt(RAMusage) / (parseInt(RAMlimit) * 1024 * 1024) * 100,
-                clean: (parseInt(RAMusage) / (parseInt(RAMlimit) * 1024 * 1024) * 100).toFixed(2) + "%",
+            percentage: {
+                raw: (RAMusage / RAMlimitBytes) * 100,
+                clean: ((RAMusage / RAMlimitBytes) * 100).toFixed(2) + "%",
             },
         },
         disk: {
             limit: {
-                raw: parseInt(DISKlimit) * 1024 * 1024,
-                clean: `${ToEngineerNotation(parseInt(DISKlimit) * 1024 * 1024)}b`,
+                raw: DISKlimitBytes,
+                clean: `${ToEngineerNotation(DISKlimitBytes)}b`,
             },
             usage: {
-                raw: parseInt(DISKusage),
-                clean: `${ToEngineerNotation(parseInt(DISKusage))}b`,
+                raw: DISKusage,
+                clean: `${ToEngineerNotation(DISKusage)}b`,
             },
-            pourcentage: {
-                raw: parseInt(DISKusage) / (parseInt(DISKlimit) * 1024 * 1024) * 100,
-                clean: (parseInt(DISKusage) / (parseInt(DISKlimit) * 1024 * 1024) * 100).toFixed(2) + "%",
+            percentage: {
+                raw: (DISKusage / DISKlimitBytes) * 100,
+                clean: ((DISKusage / DISKlimitBytes) * 100).toFixed(2) + "%",
             },
         },
         cpu: {
             limit: CPUlimit,
             usage: CPUusage,
-            pourcentage: {
-                raw: parseInt(CPUusage) / (parseInt(CPUlimit)) * 100,
-                clean: (parseInt(CPUusage) / (parseInt(CPUlimit)) * 100).toFixed(2) + "%",
+            percentage: {
+                raw: (CPUusage / CPUlimit) * 100,
+                clean: ((CPUusage / CPUlimit) * 100).toFixed(2) + "%",
             },
             cores: (CPUusage / 100).toFixed(2),
+            absolute: {
+                raw: CPUusage,
+                clean: `${CPUusage.toFixed(2)}%`,
+            },
         },
         network: {
             download: {
                 raw: NETWORKin,
-                clean: `${ToEngineerNotation(parseInt(NETWORKin))}b`,
+                clean: `${ToEngineerNotation(NETWORKin)}b`,
             },
             upload: {
                 raw: NETWORKout,
-                clean: `${ToEngineerNotation(parseInt(NETWORKout))}b`,
+                clean: `${ToEngineerNotation(NETWORKout)}b`,
             },
         },
         uptime: {
-            raw: parseInt(BOTuptime),
-            clean: prettyMilliseconds(parseInt(BOTuptime)),
+            raw: BOTuptime,
+            clean: prettyMilliseconds(BOTuptime),
         },
         main: {
             name: serverName,
+            description: serverDescription,
+            identifier: serverIdentifier,
+            internalID: internalID,
+            uuid: serverUUID,
+            node: serverNode,
+            isNodeUnderMaintenance: isNodeUnderMaintenance,
+            sftp: {
+                ip: sftpIP,
+                port: sftpPort,
+            },
+            invocation: serverInvocation,
+            dockerImage: dockerImage,
+            eggFeatures: eggFeatures,
+            featureLimits: {
+                databases: dbLimit,
+                allocations: allocLimit,
+                backups: backupLimit,
+            },
+            status: {
+                isSuspended: isSuspended,
+                isInstalling: isInstalling,
+                isTransferring: isTransferring,
+            },
             ip: IPalias,
             port: IPport,
         },
     };
-    // console.log(info)
+
     return info;
 };
+
 module.exports = GetPterodactylInfo;
