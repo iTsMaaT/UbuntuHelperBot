@@ -64,8 +64,8 @@ module.exports = {
 };
 
 
-const outputFolderBusy = "/mnt/jellyfin/Music/Busy";
-const outputFolderCompleted = "/mnt/jellyfin/Music/Completed";  
+const outputFolderBusy = "/mnt/jellyfin/music/busy";
+const outputFolderCompleted = "/mnt/jellyfin/music/completed";  
 
 async function getYoutubePlaylistVideos(url) {
     const linkType = getLinkType(url);

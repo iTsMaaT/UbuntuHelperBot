@@ -10,7 +10,7 @@ module.exports = {
         const videoUrl = args[0];
         if (!videoUrl) return message.reply("You must provide a valid URL");
 
-        const outputFolder = "/mnt/jellyfin/Videos";
+        const outputFolder = "/mnt/jellyfin/videos";
 
         const downloadOperation = async () => {
             try {
@@ -18,7 +18,8 @@ module.exports = {
                 const result = await youtubedl(videoUrl, {
                     "sponsorblock-remove": "default",
                     output: `${outputFolder}/%(title)s.%(ext)s`,
-                    format: "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best",
+                    format: "bestvideo[height<=1080][ext=mp4][vcodec^=avc]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best",
+                    
                 });
                 logger.info("Download result:" + result);
                 message.reply("Video downloaded successfully!");
@@ -30,7 +31,7 @@ module.exports = {
         };
 
         try {
-            await addToQueue("download", downloadOperation);
+            addToQueue("download", downloadOperation);
         } catch (err) {
             logger.error("Error adding download operation to the queue:", err);
             message.reply("An error occurred while adding the download operation to the queue.");
